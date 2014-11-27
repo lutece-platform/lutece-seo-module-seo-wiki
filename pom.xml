@@ -11,7 +11,7 @@
     <groupId>fr.paris.lutece.plugins</groupId>
     <artifactId>module-seo-wiki</artifactId>
     <packaging>lutece-plugin</packaging>
-    <version>1.0.1</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>Lutece seo wiki module</name>
 
     <repositories>
@@ -54,7 +54,7 @@
         <jiraProjectName>WIKI</jiraProjectName>
         <jiraComponentId>10361</jiraComponentId>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <github.global.server>github</github.global.server>
+        <github.global.server>github.com</github.global.server>
     </properties>
     <scm>
         <connection>scm:git:https://github.com/lutece-platform/lutece-seo-module-seo-wiki.git</connection>
