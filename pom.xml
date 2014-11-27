@@ -54,8 +54,9 @@
         <jiraProjectName>WIKI</jiraProjectName>
         <jiraComponentId>10361</jiraComponentId>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <github.global.server>github</github.global.server>
     </properties>
-
+    
     <scm>
         <connection>scm:git:https://github.com/lutece-platform/lutece-seo-module-seo-wiki.git</connection>
         <developerConnection>scm:git:https://github.com/lutece-platform/lutece-seo-module-seo-wiki.git</developerConnection>
@@ -73,7 +74,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-scm-plugin</artifactId>
-                <version>1.3</version>
+                <version>1.8.1</version>
                 <configuration>
                     <connectionType>developerConnection</connectionType>
                 </configuration>
