@@ -1,10 +1,9 @@
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-        <artifactId>lutece-plugins-pom</artifactId>
-        <groupId>fr.paris.lutece.plugins</groupId>
-        <version>3.7</version>
+        <artifactId>lutece-global-pom</artifactId>
+        <groupId>fr.paris.lutece.tools</groupId>
+        <version>3.0</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -51,8 +50,8 @@
 
     <properties>
         <componentName>seo-wiki</componentName>
-        <jiraProjectName>WIKI</jiraProjectName>
-        <jiraComponentId>10361</jiraComponentId>
+        <jiraProjectName>SEOWIKI</jiraProjectName>
+        <jiraComponentId>12856</jiraComponentId>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -61,51 +60,5 @@
         <developerConnection>scm:git:https://github.com/lutece-platform/lutece-seo-module-seo-wiki.git</developerConnection>
         <url>https://github.com/lutece-platform/lutece-seo-module-seo-wiki.git</url>
     </scm>
-    
-    
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <providerImplementations>
-                        <git>jgit</git>
-                    </providerImplementations>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.scm</groupId>
-                        <artifactId>maven-scm-provider-jgit</artifactId>
-                        <version>1.9.2</version>
-                    </dependency>
-                </dependencies>            
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-scm-plugin</artifactId>
-                <version>1.8.1</version>
-                <configuration>
-                    <connectionType>developerConnection</connectionType>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.4.3</version>
-                <configuration>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+        
 </project>
