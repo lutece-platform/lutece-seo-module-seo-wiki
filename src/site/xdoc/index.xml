@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+    <properties>
+        <title>Module Wiki for SEO</title>
+    </properties>
+    <body>
+        <section name="Module Wiki for SEO">
+            <subsection name="Introduction">
+                <p>This module provides a generator to build explicit URLs from Wiki technical URLs</p>
+            </subsection>
+        </section>
+    </body>
+</document>
+
