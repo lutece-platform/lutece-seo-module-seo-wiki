@@ -99,7 +99,10 @@ public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
             url.setCanonical( _bCanonical );
             url.setSitemap( _bSitemap );
             url.setSitemapChangeFreq( _strChangeFreq );
-            url.setSitemapLastmod( SitemapUtils.formatDate( version.getDateEdition(  ) ) );
+            if( version != null )
+            {
+                url.setSitemapLastmod( SitemapUtils.formatDate( version.getDateEdition(  ) ) );
+            }
             url.setSitemapPriority( _strPriority );
             list.add( url );
         }
