@@ -59,7 +59,7 @@ import java.util.List;
 public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
 {
     private static final String GENERATOR_NAME = "Wiki Friendly URL Generator";
-    private static final String TECHNICAL_URL = "/jsp/site/Portal.jsp?page=wiki&amp;page_name=";
+    private static final String TECHNICAL_URL = "/jsp/site/Portal.jsp?page=wiki&amp;view=page&amp;page_name=";
     private static final String SLASH = "/";
     private static final String PATH_WIKI = "/wiki/";
     private static final String DEFAULT_CHANGE_FREQ = SitemapUtils.CHANGE_FREQ_VALUES[3];
