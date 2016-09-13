@@ -47,6 +47,7 @@ import fr.paris.lutece.plugins.wiki.web.Constants;
 import fr.paris.lutece.portal.service.datastore.DatastoreService;
 import fr.paris.lutece.portal.service.plugin.Plugin;
 import fr.paris.lutece.portal.service.plugin.PluginService;
+import fr.paris.lutece.portal.service.util.AppLogService;
 
 import java.util.Collection;
 import java.util.List;
@@ -102,6 +103,10 @@ public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
             if( version != null )
             {
                 url.setSitemapLastmod( SitemapUtils.formatDate( version.getDateEdition(  ) ) );
+            }
+            else
+            {
+                AppLogService.error( "SEO Wiki indexer : No data was found for topic #" + t.getIdTopic() + ". Data may be corrupted.");
             }
             url.setSitemapPriority( _strPriority );
             list.add( url );
