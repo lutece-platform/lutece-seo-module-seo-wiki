@@ -43,7 +43,6 @@ import fr.paris.lutece.plugins.wiki.business.Topic;
 import fr.paris.lutece.plugins.wiki.business.TopicHome;
 import fr.paris.lutece.plugins.wiki.business.TopicVersion;
 import fr.paris.lutece.plugins.wiki.business.TopicVersionHome;
-import fr.paris.lutece.plugins.wiki.web.Constants;
 import fr.paris.lutece.portal.service.datastore.DatastoreService;
 import fr.paris.lutece.portal.service.plugin.Plugin;
 import fr.paris.lutece.portal.service.plugin.PluginService;
@@ -64,7 +63,6 @@ public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
     private static final String PATH_WIKI = "/wiki/";
     private static final String DEFAULT_CHANGE_FREQ = SitemapUtils.CHANGE_FREQ_VALUES[3];
     private static final String DEFAULT_PRIORITY = SitemapUtils.PRIORITY_VALUES[3];
-    private static Plugin _plugin = PluginService.getPlugin( Constants.PLUGIN_NAME );
     private boolean _bCanonical;
     private boolean _bSitemap;
     private String _strChangeFreq;
@@ -76,7 +74,7 @@ public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
     @Override
     public String generate( List<FriendlyUrl> list, GeneratorOptions options )
     {
-        Collection<Topic> listTopics = TopicHome.getTopicsList( _plugin );
+        Collection<Topic> listTopics = TopicHome.getTopicsList( );
 
         init(  );
 
@@ -94,7 +92,7 @@ public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
                 url.setFriendlyUrl( SLASH + FriendlyUrlUtils.convertToFriendlyUrl( t.getPageName(  ) ) );
             }
 
-            TopicVersion version = TopicVersionHome.findByPrimaryKey( t.getIdTopic(  ), _plugin );
+            TopicVersion version = TopicVersionHome.findByPrimaryKey( t.getIdTopic(  ) );
 
             url.setTechnicalUrl( TECHNICAL_URL + t.getPageName(  ) );
             url.setCanonical( _bCanonical );
