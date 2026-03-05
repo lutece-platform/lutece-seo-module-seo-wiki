@@ -39,39 +39,43 @@ import fr.paris.lutece.plugins.seo.service.SEODataKeys;
 import fr.paris.lutece.plugins.seo.service.generator.FriendlyUrlGenerator;
 import fr.paris.lutece.plugins.seo.service.generator.GeneratorOptions;
 import fr.paris.lutece.plugins.seo.service.sitemap.SitemapUtils;
-import fr.paris.lutece.plugins.wiki.business.Topic;
-import fr.paris.lutece.plugins.wiki.business.TopicHome;
-import fr.paris.lutece.plugins.wiki.business.TopicVersion;
-import fr.paris.lutece.plugins.wiki.business.TopicVersionHome;
-import fr.paris.lutece.plugins.wiki.business.WikiContent;
-import fr.paris.lutece.plugins.wiki.service.WikiLocaleService;
+import fr.paris.lutece.plugins.wiki.business.item.AbstractWikiItem;
+import fr.paris.lutece.plugins.wiki.business.item.WikiItemHome;
+import fr.paris.lutece.plugins.wiki.business.item.WikiItemType;
+import fr.paris.lutece.plugins.wiki.business.revision.Revision;
+import fr.paris.lutece.plugins.wiki.business.revision.RevisionHome;
 import fr.paris.lutece.portal.service.datastore.DatastoreService;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
-import java.text.MessageFormat;
-import java.util.ArrayList;
 
-import java.util.Collection;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
+
+import java.text.MessageFormat;
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
 
 
 /**
- * Document Alias Generator
+ * Wiki Friendly URL Generator for Lutece 8 wiki hierarchy (Space / Book / Page)
  */
+@ApplicationScoped
+@Named
 public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
 {
     private static final String GENERATOR_NAME = "Wiki Friendly URL Generator";
-    private static final String TECHNICAL_URL = "/jsp/site/Portal.jsp?page=wiki&amp;view=page&amp;page_name=";
-    private static final String LANGUAGE_ARG = "&amp;language=" ;
     private static final String SLASH = "/";
     private static final String PATH_WIKI = "wiki/";
-    
+
+    // Technical URL templates with HTML-encoded ampersands
+    private static final String TECHNICAL_URL_PAGE = "/jsp/site/Portal.jsp?page=wiki&amp;view=viewPage&amp;book={0}&amp;wiki_page={1}";
+    private static final String TECHNICAL_URL_BOOK = "/jsp/site/Portal.jsp?page=wiki&amp;view=viewBook&amp;book={0}";
+    private static final String TECHNICAL_URL_SPACE = "/jsp/site/Portal.jsp?page=wiki&amp;view=viewSpace&amp;space={0}";
+
     private static final String PROPERTY_PAGE_NAME_BASED_URL_ACTIVATE = "seo-wiki.pageNameBasedExplicitUrl.activate";
     private static final String PROPERTY_PAGE_NAME_BASED_URL_TEMPLATE = "seo-wiki.pageNameBasedExplicitUrl.template";
     private static final String PROPERTY_PAGE_TITLE_BASED_URLS_ACTIVATE = "seo-wiki.pageTitleBasedExplicitUrls.activate";
     private static final String PROPERTY_PAGE_TITLE_BASED_URLS_TEMPLATE = "seo-wiki.pageTitleBasedExplicitUrls.template";
-    
+
     private static final String DEFAULT_CHANGE_FREQ = SitemapUtils.CHANGE_FREQ_VALUES[3];
     private static final String DEFAULT_PRIORITY = SitemapUtils.PRIORITY_VALUES[3];
     private boolean _bCanonical;
@@ -85,111 +89,174 @@ public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
     @Override
     public String generate( List<FriendlyUrl> list, GeneratorOptions options )
     {
-        Collection<Topic> listTopics = TopicHome.getTopicsList( );
+        init( );
 
-        List<String> listLanguages = WikiLocaleService.getLanguages( );
-        String defaultLanguage = WikiLocaleService.getDefaultLanguage( ) ;
-        init(  );
-
-        for ( Topic t : listTopics )
+        // Generate URLs for wiki pages (inside books)
+        List<AbstractWikiItem> listPages = WikiItemHome.getWikiItemsByType( WikiItemType.PAGE );
+        for ( AbstractWikiItem page : listPages )
         {
-            
-            // get the page title of the last version
-            TopicVersion lastTopicVersion = TopicVersionHome.findLastVersion(t.getIdTopic());
+            generatePageUrls( page, list, options );
+        }
 
-            if( lastTopicVersion == null )
-            {
-                AppLogService.error( "SEO Wiki indexer : No data was found for topic #" + t.getIdTopic() + ". Data may be corrupted.");
-            }
-            else
-            {
-                
-                /* Explicit URLs properties
-                * Templates parameters :
-                * - {0} : wiki path, ex : "wiki"
-                * - {1} : page name, ex : "Lutece-plugins" (converted with FriendlyUrlUtils)
-                * - {2} : page title, ex : "Presentation-du-wiki" (converted with FriendlyUrlUtils)
-                * - {3} : language, ex : "fr"
-                */        
-                
-                Boolean generatePageNameBasedExplicitURL = "true".equals( AppPropertiesService.getProperty( PROPERTY_PAGE_NAME_BASED_URL_ACTIVATE ) ) ; 
-                Boolean generatePageTitleBasedExplicitURLs = "true".equals( AppPropertiesService.getProperty( PROPERTY_PAGE_TITLE_BASED_URLS_ACTIVATE ) ) ; 
+        // Generate URLs for books
+        List<AbstractWikiItem> listBooks = WikiItemHome.getWikiItemsByType( WikiItemType.BOOK );
+        for ( AbstractWikiItem book : listBooks )
+        {
+            generateBookUrl( book, list, options );
+        }
 
-                // generate Explict Urls based on topic page name
-                if (generatePageNameBasedExplicitURL) {
-                    String template =  AppPropertiesService.getProperty( PROPERTY_PAGE_NAME_BASED_URL_TEMPLATE );
-                    FriendlyUrl url = new FriendlyUrl(  );
-
-                    String wikiPath = ( options.isAddPath(  ) ? PATH_WIKI : "" ) ;
-                    String pageName = FriendlyUrlUtils.convertToFriendlyUrl( t.getPageName( ) ) ;
-                    String strPath = SLASH + MessageFormat.format( template , wikiPath, pageName, "", "") ;
-                    
-                    url.setFriendlyUrl( strPath );
-
-                    String strTechnicalUrl = TECHNICAL_URL + t.getPageName(  ) ;
-                    url.setTechnicalUrl( strTechnicalUrl );
-
-                    url.setCanonical( _bCanonical );
-                    url.setSitemap( _bSitemap );
-                    url.setSitemapChangeFreq( _strChangeFreq );
-
-                    url.setSitemapLastmod( SitemapUtils.formatDate( lastTopicVersion.getDateEdition(  ) ) );
-
-                    url.setSitemapPriority( _strPriority );
-                    list.add( url );
-                }
-                
-                // generate Explict Urls based on topic page title, by language
-                if (generatePageTitleBasedExplicitURLs) {
-                    for ( String strLanguage : listLanguages ) 
-                    {
-                        String template =  AppPropertiesService.getProperty( PROPERTY_PAGE_TITLE_BASED_URLS_TEMPLATE );
-                        FriendlyUrl url = new FriendlyUrl(  );
-
-                        WikiContent lastContent = lastTopicVersion.getWikiContent( strLanguage ) ;
-                        String pageTitle = FriendlyUrlUtils.convertToFriendlyUrl(( !StringUtils.isBlank( lastContent.getPageTitle( ) ) ? lastContent.getPageTitle( ) : t.getPageName( ) ) ) ;
-                        String wikiPath = ( options.isAddPath(  ) ? PATH_WIKI : "" ) ;
-                        String pageName = FriendlyUrlUtils.convertToFriendlyUrl( t.getPageName( ) ) ;
-                        String strPath = SLASH + MessageFormat.format( template , wikiPath, pageName, pageTitle, strLanguage ) ;
-                    
-                        url.setFriendlyUrl( strPath );
-
-
-                        String strTechnicalUrl = TECHNICAL_URL + t.getPageName(  ) ;
-                        if ( !defaultLanguage.equals( strLanguage ) ) strTechnicalUrl += LANGUAGE_ARG + strLanguage;
-                        url.setTechnicalUrl( strTechnicalUrl );
-
-                        url.setCanonical( _bCanonical );
-                        url.setSitemap( _bSitemap );
-                        url.setSitemapChangeFreq( _strChangeFreq );
-
-                        url.setSitemapLastmod( SitemapUtils.formatDate( lastTopicVersion.getDateEdition(  ) ) );
-
-                        url.setSitemapPriority( _strPriority );
-                        list.add( url );
-                    }
-                }
-            }
+        // Generate URLs for spaces
+        List<AbstractWikiItem> listSpaces = WikiItemHome.getWikiItemsByType( WikiItemType.SPACE );
+        for ( AbstractWikiItem space : listSpaces )
+        {
+            generateSpaceUrl( space, list, options );
         }
 
         return "";
     }
 
     /**
+     * Generate friendly URLs for a wiki page
+     */
+    private void generatePageUrls( AbstractWikiItem page, List<FriendlyUrl> list, GeneratorOptions options )
+    {
+        Revision currentRevision = RevisionHome.getCurrentRevision( page.getId( ) );
+
+        if ( currentRevision == null )
+        {
+            AppLogService.error( "SEO Wiki indexer : No revision was found for wiki item #{}. Data may be corrupted.", page.getId( ) );
+            return;
+        }
+
+        // Find the parent book by traversing up the hierarchy
+        String strBookCode = findParentBookCode( page );
+        if ( strBookCode == null )
+        {
+            AppLogService.error( "SEO Wiki indexer : No parent book found for wiki page #{} (code={}). Skipping.", page.getId( ), page.getCode( ) );
+            return;
+        }
+
+        String strTechnicalUrl = MessageFormat.format( TECHNICAL_URL_PAGE, strBookCode, page.getCode( ) );
+
+        Boolean generatePageNameBasedExplicitURL = "true".equals( AppPropertiesService.getProperty( PROPERTY_PAGE_NAME_BASED_URL_ACTIVATE ) );
+        Boolean generatePageTitleBasedExplicitURLs = "true".equals( AppPropertiesService.getProperty( PROPERTY_PAGE_TITLE_BASED_URLS_ACTIVATE ) );
+
+        if ( generatePageNameBasedExplicitURL )
+        {
+            String template = AppPropertiesService.getProperty( PROPERTY_PAGE_NAME_BASED_URL_TEMPLATE );
+            String wikiPath = ( options.isAddPath( ) ? PATH_WIKI : "" );
+            String pageName = FriendlyUrlUtils.convertToFriendlyUrl( page.getCode( ) );
+            String strPath = SLASH + MessageFormat.format( template, wikiPath, pageName, "", "" );
+
+            FriendlyUrl url = createFriendlyUrl( strPath, strTechnicalUrl, currentRevision );
+            list.add( url );
+        }
+
+        if ( generatePageTitleBasedExplicitURLs )
+        {
+            String template = AppPropertiesService.getProperty( PROPERTY_PAGE_TITLE_BASED_URLS_TEMPLATE );
+            String revisionTitle = currentRevision.getTitle( );
+            String pageTitle = FriendlyUrlUtils.convertToFriendlyUrl(
+                ( revisionTitle != null && !revisionTitle.isEmpty( ) ) ? revisionTitle : page.getCode( ) );
+            String wikiPath = ( options.isAddPath( ) ? PATH_WIKI : "" );
+            String pageName = FriendlyUrlUtils.convertToFriendlyUrl( page.getCode( ) );
+            String strPath = SLASH + MessageFormat.format( template, wikiPath, pageName, pageTitle, "" );
+
+            FriendlyUrl url = createFriendlyUrl( strPath, strTechnicalUrl, currentRevision );
+            list.add( url );
+        }
+    }
+
+    /**
+     * Generate friendly URL for a wiki book
+     */
+    private void generateBookUrl( AbstractWikiItem book, List<FriendlyUrl> list, GeneratorOptions options )
+    {
+        Revision currentRevision = RevisionHome.getCurrentRevision( book.getId( ) );
+
+        if ( currentRevision == null )
+        {
+            return;
+        }
+
+        String strTechnicalUrl = MessageFormat.format( TECHNICAL_URL_BOOK, book.getCode( ) );
+        String wikiPath = ( options.isAddPath( ) ? PATH_WIKI : "" );
+        String bookName = FriendlyUrlUtils.convertToFriendlyUrl( book.getCode( ) );
+        String strPath = SLASH + wikiPath + bookName;
+
+        FriendlyUrl url = createFriendlyUrl( strPath, strTechnicalUrl, currentRevision );
+        list.add( url );
+    }
+
+    /**
+     * Generate friendly URL for a wiki space
+     */
+    private void generateSpaceUrl( AbstractWikiItem space, List<FriendlyUrl> list, GeneratorOptions options )
+    {
+        Revision currentRevision = RevisionHome.getCurrentRevision( space.getId( ) );
+
+        if ( currentRevision == null )
+        {
+            return;
+        }
+
+        String strTechnicalUrl = MessageFormat.format( TECHNICAL_URL_SPACE, space.getCode( ) );
+        String wikiPath = ( options.isAddPath( ) ? PATH_WIKI : "" );
+        String spaceName = FriendlyUrlUtils.convertToFriendlyUrl( space.getCode( ) );
+        String strPath = SLASH + wikiPath + spaceName;
+
+        FriendlyUrl url = createFriendlyUrl( strPath, strTechnicalUrl, currentRevision );
+        list.add( url );
+    }
+
+    /**
+     * Create a FriendlyUrl with common properties
+     */
+    private FriendlyUrl createFriendlyUrl( String strPath, String strTechnicalUrl, Revision revision )
+    {
+        FriendlyUrl url = new FriendlyUrl( );
+        url.setFriendlyUrl( strPath );
+        url.setTechnicalUrl( strTechnicalUrl );
+        url.setCanonical( _bCanonical );
+        url.setSitemap( _bSitemap );
+        url.setSitemapChangeFreq( _strChangeFreq );
+        url.setSitemapLastmod( SitemapUtils.formatDate( revision.getDateCreation( ) ) );
+        url.setSitemapPriority( _strPriority );
+        return url;
+    }
+
+    /**
+     * Find the parent book code by traversing up the item hierarchy
+     */
+    private String findParentBookCode( AbstractWikiItem item )
+    {
+        AbstractWikiItem current = item.getParent( );
+        while ( current != null )
+        {
+            if ( current.getType( ) == WikiItemType.BOOK )
+            {
+                return current.getCode( );
+            }
+            current = current.getParent( );
+        }
+        return null;
+    }
+
+    /**
      * {@inheritDoc }
      */
     @Override
-    public String getName(  )
+    public String getName( )
     {
         return GENERATOR_NAME;
     }
 
     /**
-     * Initialiaze generator with options stored with Datastore
+     * Initialize generator with options stored with Datastore
      */
-    private void init(  )
+    private void init( )
     {
-        String strKeyPrefix = SEODataKeys.PREFIX_GENERATOR + getClass(  ).getName(  );
+        String strKeyPrefix = SEODataKeys.PREFIX_GENERATOR + getClass( ).getName( );
         _bCanonical = DatastoreService.getDataValue( strKeyPrefix + SEODataKeys.SUFFIX_CANONICAL,
                 DatastoreService.VALUE_TRUE ).equals( DatastoreService.VALUE_TRUE );
         _bSitemap = DatastoreService.getDataValue( strKeyPrefix + SEODataKeys.SUFFIX_SITEMAP,
