@@ -66,10 +66,10 @@ public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
     private static final String SLASH = "/";
     private static final String PATH_WIKI = "wiki/";
 
-    // Technical URL templates with HTML-encoded ampersands
-    private static final String TECHNICAL_URL_PAGE = "/jsp/site/Portal.jsp?page=wiki&amp;view=viewPage&amp;book={0}&amp;wiki_page={1}";
-    private static final String TECHNICAL_URL_BOOK = "/jsp/site/Portal.jsp?page=wiki&amp;view=viewBook&amp;book={0}";
-    private static final String TECHNICAL_URL_SPACE = "/jsp/site/Portal.jsp?page=wiki&amp;view=viewSpace&amp;space={0}";
+    // Technical URL templates with raw ampersands (Freemarker auto-escaping handles XML encoding)
+    private static final String TECHNICAL_URL_PAGE = "/jsp/site/Portal.jsp?page=wiki&view=viewPage&book={0}&wiki_page={1}";
+    private static final String TECHNICAL_URL_BOOK = "/jsp/site/Portal.jsp?page=wiki&view=viewBook&book={0}";
+    private static final String TECHNICAL_URL_SPACE = "/jsp/site/Portal.jsp?page=wiki&view=viewSpace&space={0}";
 
     private static final String PROPERTY_PAGE_NAME_BASED_URL_ACTIVATE = "seo-wiki.pageNameBasedExplicitUrl.activate";
     private static final String PROPERTY_PAGE_NAME_BASED_URL_TEMPLATE = "seo-wiki.pageNameBasedExplicitUrl.template";
