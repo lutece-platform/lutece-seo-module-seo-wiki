@@ -70,6 +70,8 @@ public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
     private static final String TECHNICAL_URL_PAGE = "/jsp/site/Portal.jsp?page=wiki&view=viewPage&book={0}&wiki_page={1}";
     private static final String TECHNICAL_URL_BOOK = "/jsp/site/Portal.jsp?page=wiki&view=viewBook&book={0}";
     private static final String TECHNICAL_URL_SPACE = "/jsp/site/Portal.jsp?page=wiki&view=viewSpace&space={0}";
+    private static final String TECHNICAL_URL_HOME = "/jsp/site/Portal.jsp?page=wiki";
+    private static final String FRIENDLY_URL_HOME = "/wiki/home";
 
     private static final String PROPERTY_PAGE_NAME_BASED_URL_ACTIVATE = "seo-wiki.pageNameBasedExplicitUrl.activate";
     private static final String PROPERTY_PAGE_NAME_BASED_URL_TEMPLATE = "seo-wiki.pageNameBasedExplicitUrl.template";
@@ -90,6 +92,10 @@ public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
     public String generate( List<FriendlyUrl> list, GeneratorOptions options )
     {
         init( );
+
+        // Generate URL for wiki home page (listWiki view)
+        FriendlyUrl homeUrl = createFriendlyUrl( FRIENDLY_URL_HOME, TECHNICAL_URL_HOME, null );
+        list.add( homeUrl );
 
         // Generate URLs for wiki pages (inside books)
         List<AbstractWikiItem> listPages = WikiItemHome.getWikiItemsByType( WikiItemType.PAGE );
@@ -220,7 +226,7 @@ public class WikiFriendlyUrlGenerator implements FriendlyUrlGenerator
         url.setCanonical( _bCanonical );
         url.setSitemap( _bSitemap );
         url.setSitemapChangeFreq( _strChangeFreq );
-        url.setSitemapLastmod( SitemapUtils.formatDate( revision.getDateCreation( ) ) );
+        url.setSitemapLastmod( revision != null ? SitemapUtils.formatDate( revision.getDateCreation( ) ) : "" );
         url.setSitemapPriority( _strPriority );
         return url;
     }
